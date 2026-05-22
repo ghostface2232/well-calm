@@ -61,7 +61,7 @@ export function MetricCard({
         {showWave && (
           <div className="absolute inset-x-0 top-[44%] -translate-y-1/2 pointer-events-none">
             <img
-              src="/images/wave.png"
+              src="/images/wave.svg"
               alt=""
               aria-hidden
               className="w-full h-auto opacity-90"

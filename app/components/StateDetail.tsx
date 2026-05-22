@@ -83,7 +83,7 @@ export function StateDetail({ onClose }: { onClose?: () => void }) {
         <div style={{ viewTransitionName: "calm-detail-body" }}>
           <div className="relative mt-[30px] h-[30px] w-full">
             <img
-              src="/images/wave-fullscreen.png"
+              src="/images/wave-fullscreen.svg"
               alt=""
               aria-hidden
               className="w-full h-full object-cover"
