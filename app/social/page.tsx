@@ -131,11 +131,11 @@ export default function SocialPage() {
               </div>
             </div>
 
-            <div className="relative min-w-0 flex-1 flex flex-col items-center gap-[14px] text-white">
+            <div className="relative min-w-0 flex-1 flex flex-col items-center gap-[14px] text-center text-white">
               <span className="text-[16px] font-medium text-white/70 uppercase max-[340px]:text-[14px]">
                 Relay
               </span>
-              <p className="text-[28px] leading-none text-center font-medium max-[380px]:text-[24px] max-[340px]:text-[20px]">
+              <p className="w-full text-[28px] leading-none font-medium max-[380px]:text-[24px] max-[340px]:text-[20px]">
                 Tim, Clara
                 <br />
                 and Jane&rsquo;s
@@ -151,7 +151,7 @@ export default function SocialPage() {
               >
                 <button
                   type="button"
-                  className="px-[21px] py-[7px] bg-[#4b4b4b]/35 text-white text-[20px] font-medium backdrop-blur-sm max-[340px]:text-[18px]"
+                  className="inline-flex items-center justify-center bg-[#4b4b4b]/35 text-white text-[20px] font-medium backdrop-blur-sm max-[340px]:text-[18px]"
                 >
                   JOIN
                 </button>
