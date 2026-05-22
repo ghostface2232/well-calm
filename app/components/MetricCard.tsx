@@ -59,7 +59,7 @@ export function MetricCard({
 
         <div className="relative h-full px-[18px] py-[24px] flex flex-col text-white">
           <div
-            className="text-[36px] font-normal leading-none max-[380px]:text-[32px] max-[340px]:text-[29px]"
+            className="text-[34px] font-normal leading-none max-[380px]:text-[30px] max-[340px]:text-[27px]"
             style={{ viewTransitionName: titleTransitionName }}
           >
             {title}

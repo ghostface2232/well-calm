@@ -18,7 +18,7 @@ export default function StatePage() {
                 65-
                 <br />
                 127
-                <span className="text-[20px] font-medium ml-1 text-white/70 max-[380px]:text-[18px] max-[340px]:text-[16px]">
+                <span className="text-[19px] font-medium ml-1 text-white/70 max-[380px]:text-[17px] max-[340px]:text-[15px]">
                   BPM
                 </span>
               </span>
@@ -48,7 +48,7 @@ export default function StatePage() {
             label="Breathing Rate"
             value={0.5}
           >
-            <span className="mt-1 text-[20px] font-medium text-white/70 leading-none max-[380px]:text-[18px] max-[340px]:text-[16px]">
+            <span className="mt-1 text-[19px] font-medium text-white/70 leading-none max-[380px]:text-[17px] max-[340px]:text-[15px]">
               breathes/min
             </span>
           </MetricCard>
