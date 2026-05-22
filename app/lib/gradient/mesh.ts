@@ -285,9 +285,12 @@ export function buildGradient(palette: Palette, opts: BuildOptions = {}): Gradie
   // the vignette wash is static (no hue drift), so it wants a concrete sRGB
   const deepRgb = oklchToRgb(deep);
   // A brighter tint of the card's own hue for the inner-glow rim — same hue,
-  // similar chroma, just lifted in lightness so the card edge reads as
-  // catching light. Kept opaque; <MeshGradient> softens it with color-mix.
-  const rimTint: Oklch = { l: 0.9 + 0.04 * value, c: chroma * 0.78, h: hue };
+  // lifted in lightness so the card edge reads as catching light, but only
+  // moderately: a touch lower in lightness and a little richer in chroma than
+  // a near-white catch, so the rim sits closer to the card's own colour
+  // instead of standing out. Kept opaque; <MeshGradient> softens it with
+  // color-mix.
+  const rimTint: Oklch = { l: 0.85 + 0.04 * value, c: chroma * 0.88, h: hue };
 
   const j = (v: number, amt: number) => rng.jitter(v, amt);
   const layers: GradientLayer[] = [];
