@@ -9,7 +9,6 @@ export function MetricCard({
   label,
   value = 0.5,
   size = "square",
-  showWave = false,
   heroName,
   titleTransitionName,
   labelTransitionName,
@@ -25,7 +24,6 @@ export function MetricCard({
    */
   value?: number;
   size?: "square" | "wide";
-  showWave?: boolean;
   /**
    * View-transition name for the card's gradient. When this card and another
    * element share a name across a `startViewTransition()`, the gradient morphs
@@ -55,19 +53,9 @@ export function MetricCard({
         <MeshGradient
           spec={gradient}
           viewTransitionName={heroName}
+          showRim
           className={`absolute inset-0${heroName ? " rounded-[40px]" : ""}`}
         />
-
-        {showWave && (
-          <div className="absolute inset-x-0 top-[44%] -translate-y-1/2 pointer-events-none">
-            <img
-              src="/images/wave.svg"
-              alt=""
-              aria-hidden
-              className="w-full h-auto opacity-90"
-            />
-          </div>
-        )}
 
         <div className="relative h-full px-[18px] py-[24px] flex flex-col text-white">
           <div

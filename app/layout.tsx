@@ -25,7 +25,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`h-full antialiased ${sfProRounded.variable}`}>
-      <body className="min-h-full bg-[#eeeeef]">{children}</body>
+      {/* the single app background lives on <body> in globals.css */}
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

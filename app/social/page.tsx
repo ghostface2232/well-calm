@@ -76,7 +76,7 @@ export default function SocialPage() {
   return (
     <AppShell active="social">
       <section>
-        <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
+        <h2 className="text-[28px] font-normal leading-[1.08] text-white px-[9px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
           Share your vibe with…
         </h2>
 
@@ -117,7 +117,7 @@ export default function SocialPage() {
       </section>
 
       <section className="mt-[24px]">
-        <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
+        <h2 className="text-[28px] font-normal leading-[1.08] text-white px-[9px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
           The baton&rsquo;s open.
         </h2>
 

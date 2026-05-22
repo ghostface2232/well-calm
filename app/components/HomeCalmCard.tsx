@@ -49,7 +49,6 @@ export function HomeCalmCard() {
           title="Calm"
           label="Overall Mental State"
           size="wide"
-          showWave
           // calm, settled state → muted, deep gradient
           value={0.3}
           // While the modal is open it owns `calm-hero`; drop it here so the

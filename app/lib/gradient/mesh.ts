@@ -19,9 +19,11 @@
  * gradient reflects the card's state.
  */
 
-import { RGB, clamp01, hexToOklch, oklchToRgb, round } from "./color";
+import {
+  Oklch, RGB, clamp01, hexToOklch, oklchToCss, oklchToRgb, round,
+} from "./color";
 import { Palette } from "./palettes";
-import { createRng } from "./prng";
+import { Rng, createRng } from "./prng";
 
 export type Archetype = "dawn" | "dusk" | "corner" | "aura" | "eclipse" | "twotone";
 
@@ -29,9 +31,57 @@ const ARCHETYPES: readonly Archetype[] = [
   "dawn", "dusk", "corner", "aura", "eclipse", "twotone",
 ];
 
+/**
+ * A slow drift/breathe profile for one soft light. Each glow gets its own,
+ * derived deterministically from the seed — so layers wander at different
+ * tempos and the field reads as volumetric rather than flat. Consumed by the
+ * shared `wc-mesh-drift` keyframes (see app/globals.css).
+ */
+/** A 2-D offset in % of the card. */
+export type Vec = readonly [number, number];
+
+/**
+ * One drifting oscillator: a centre wander through `nodes` plus a synced
+ * radius/colour-falloff breathe, running on its own loop. The light moves
+ * inside a fixed element (added to the gradient's base centre), so there is
+ * never an edge gap.
+ */
+export interface DriftOscillator {
+  /** loop duration, seconds */
+  dur: number;
+  /** negative start offset, seconds — desyncs it from siblings */
+  delay: number;
+  /** radius multiplier at the breathe peak — the light swells, then settles */
+  rhi: number;
+  /** mid-stop shift at the breathe peak, % — redistributes the colour falloff */
+  mhi: number;
+  /** hue swing amplitude, degrees — the colour drifts warmer, then cooler */
+  hue: number;
+  /** centre-wander nodes, each an [x, y] offset added to the base centre */
+  nodes: readonly Vec[];
+}
+
+export interface LayerMotion {
+  /** the main wander */
+  primary: DriftOscillator;
+  /**
+   * A second wander at an unrelated tempo. The gradient sums the two, and
+   * their loop lengths don't divide evenly — so the combined motion is
+   * quasi-periodic: irregular, never settling into an obvious repeat.
+   */
+  secondary: DriftOscillator;
+  /** opacity endpoints — a pulse in the light's intensity */
+  o0: number;
+  o1: number;
+}
+
 export interface GradientLayer {
   /** a CSS radial-gradient string */
   background: string;
+  /** glow layers drift and breathe; the vignette stays pinned to the frame */
+  kind: "glow" | "vignette";
+  /** drift/breathe parameters — present on glow layers only */
+  motion?: LayerMotion;
 }
 
 export interface GradientSpec {
@@ -41,6 +91,13 @@ export interface GradientSpec {
   layers: GradientLayer[];
   /** fractal-grain opacity, 0-1 */
   grain: number;
+  /**
+   * CSS colour for the inner-glow rim — a slightly brighter tint of the card's
+   * own hue. <MeshGradient> renders it as a soft inset box-shadow hugging the
+   * inside of the card edge (a Photoshop "Inner Glow"). Kept opaque here; the
+   * component softens it with `color-mix`.
+   */
+  rim: string;
   /** the composition template used */
   archetype: Archetype;
 }
@@ -72,17 +129,48 @@ function rgba({ r, g, b }: RGB, a: number): string {
 }
 
 /**
- * A soft radial that fades a colour out to nothing — the core building block.
+ * A glow colour as a CSS `oklch()` string at a given alpha — with the hue
+ * offset by the two animatable hue oscillators (`--wc-hue` + `--wc-hue2`,
+ * registered in app/globals.css). At their defaults the hue is unchanged;
+ * when <MeshGradient> animates them the colour drifts warmer and cooler.
  *
- * It fades to the colour's *own* alpha-0 form (never the `transparent`
+ * Alpha 0 fades to the colour's *own* zero-alpha form (never the `transparent`
  * keyword, which is premultiplied black and leaves a muddy grey halo).
  */
+function oklchStop(c: Oklch, alpha: number): string {
+  return (
+    `oklch(${round(c.l, 4)} ${round(c.c, 4)} ` +
+    `calc(${round(c.h, 2)}deg + var(--wc-hue, 0deg) + var(--wc-hue2, 0deg)) ` +
+    `/ ${round(alpha, 3)})`
+  );
+}
+
+/**
+ * A soft radial that fades a colour out to nothing — the core building block.
+ *
+ * Centre, radius, mid-stop and hue are all expressed against animatable
+ * custom properties registered in app/globals.css. Two oscillators feed each
+ * one — `--wc-cx` + `--wc-cx2` for the centre, `--wc-rs` * `--wc-rs2` for the
+ * radius, `--wc-hue` + `--wc-hue2` for the hue, and so on — running at
+ * unrelated tempos, so the summed motion is irregular and never settles into
+ * an obvious repeat. At their defaults this is exactly the static gradient;
+ * when <MeshGradient> animates them the light drifts, swells, redistributes
+ * and shifts hue *inside* its element — the element never moves, so the
+ * gradient always covers the card frame (no edge gap). Each `var()` carries a
+ * fallback, so the gradient is valid even when unset.
+ */
 function softLight(
-  x: number, y: number, rx: number, ry: number, color: RGB, alpha: number,
+  x: number, y: number, rx: number, ry: number, color: Oklch, alpha: number,
 ): string {
   return (
-    `radial-gradient(${round(rx)}% ${round(ry)}% at ${round(x)}% ${round(y)}%, ` +
-    `${rgba(color, alpha)} 0%, ${rgba(color, alpha * 0.62)} 50%, ${rgba(color, 0)} 100%)`
+    `radial-gradient(` +
+    `calc(${round(rx)}% * var(--wc-rs, 1) * var(--wc-rs2, 1)) ` +
+    `calc(${round(ry)}% * var(--wc-rs, 1) * var(--wc-rs2, 1)) ` +
+    `at calc(${round(x)}% + var(--wc-cx, 0%) + var(--wc-cx2, 0%)) ` +
+    `calc(${round(y)}% + var(--wc-cy, 0%) + var(--wc-cy2, 0%)), ` +
+    `${oklchStop(color, alpha)} 0%, ` +
+    `${oklchStop(color, alpha * 0.62)} calc(50% + var(--wc-mid, 0%) + var(--wc-mid2, 0%)), ` +
+    `${oklchStop(color, 0)} 100%)`
   );
 }
 
@@ -95,6 +183,65 @@ function vignetteWash(color: RGB, alpha: number): string {
 }
 
 /**
+ * Build one oscillator: `count` centre-wander nodes spaced *unevenly* around
+ * a loop — jittered both in angle and in radius, so the path is an irregular
+ * wander, not a tidy polygon — plus a radius/colour breathe and its own tempo.
+ */
+function oscillator(
+  rng: Rng,
+  count: number,
+  reach: number,
+  dur: Vec,
+  rhi: Vec,
+  mhi: Vec,
+  hue: Vec,
+): DriftOscillator {
+  let a = rng.range(0, Math.PI * 2);
+  const nodes: Vec[] = [];
+  for (let i = 0; i < count; i++) {
+    // uneven angular steps — the loop never closes into a regular shape
+    a += ((Math.PI * 2) / count) * rng.range(0.6, 1.5);
+    const r = rng.jitter(reach, reach * 0.5);
+    nodes.push([round(Math.cos(a) * r, 2), round(Math.sin(a) * r, 2)]);
+  }
+  const d = round(rng.range(dur[0], dur[1]), 2);
+  return {
+    dur: d,
+    delay: -round(rng.range(0, d), 2),
+    rhi: round(rng.range(rhi[0], rhi[1]), 3),
+    mhi: round(rng.range(mhi[0], mhi[1]), 1),
+    hue: round(rng.range(hue[0], hue[1]), 1),
+    nodes,
+  };
+}
+
+/**
+ * An organic drift profile for one glow layer.
+ *
+ * Only the gradient's *interior* moves — the element never does, so the
+ * gradient always covers the card frame (no edge gap). Two oscillators are
+ * superimposed: a broad primary wander and a smaller secondary one running at
+ * an unrelated tempo. Because their loop lengths don't divide evenly, the
+ * summed motion is *quasi-periodic* — it wanders irregularly and never settles
+ * into a recognisable repeat — and the wander nodes themselves are unevenly
+ * placed. Each oscillator also swings the hue a little, so the colour itself
+ * drifts warmer and cooler. The field reads as volumetric, restless and alive.
+ */
+function motionFor(rng: Rng): LayerMotion {
+  return {
+    // reach, [dur], [radius], [mid-stop], [hue°]
+    primary: oscillator(
+      rng, 3, rng.range(10, 15), [3, 5], [1.18, 1.36], [14, 22], [5, 11],
+    ),
+    secondary: oscillator(
+      rng, 2, rng.range(4.5, 7.5), [6, 10], [1.05, 1.13], [7, 12], [3, 6],
+    ),
+    o0: 1,
+    o1: round(rng.range(0.76, 0.88), 3),
+  };
+}
+
+/**
  * Build a mesh-gradient spec for a card from a palette.
  *
  * Pure and deterministic: identical `(palette, opts)` always produce an
@@ -103,6 +250,9 @@ function vignetteWash(color: RGB, alpha: number): string {
 export function buildGradient(palette: Palette, opts: BuildOptions = {}): GradientSpec {
   const value = clamp01(opts.value ?? 0.5);
   const rng = createRng(opts.seed ?? "well-calm");
+  // A separate stream for motion, so adding/tuning the drift never disturbs
+  // the (deterministic) colour and composition derived from `rng`.
+  const motionRng = createRng(`${opts.seed ?? "well-calm"}~motion`);
   const archetype = opts.archetype ?? rng.pick(ARCHETYPES);
 
   // --- colour, modulated by `value` (kept subtle on purpose) ---
@@ -118,19 +268,31 @@ export function buildGradient(palette: Palette, opts: BuildOptions = {}): Gradie
   const companionHue = towardHue(norm(accent.h + warmShift), primary.h, 0.12);
   const companionChroma = accent.c * chromaScale;
 
-  const field = oklchToRgb({ l: 0.44 + 0.07 * value, c: chroma * 0.95, h: hue });
-  const brightField = oklchToRgb({ l: 0.57 + 0.07 * value, c: chroma, h: hue });
-  const primaryLight = oklchToRgb({ l: 0.71 + 0.05 * value, c: chroma * 0.9, h: hue });
-  const companion = oklchToRgb({ l: 0.63 + 0.08 * value, c: companionChroma * 0.95, h: companionHue });
-  const deep = oklchToRgb({ l: 0.17 + 0.05 * value, c: chroma * 0.6, h: hue });
+  // Glow colours stay in OKLCH so their hue can be shifted at render time by
+  // the animated `--wc-hue` properties (see oklchStop / softLight).
+  const field: Oklch = { l: 0.44 + 0.07 * value, c: chroma * 0.95, h: hue };
+  const brightField: Oklch = { l: 0.57 + 0.07 * value, c: chroma, h: hue };
+  const primaryLight: Oklch = { l: 0.71 + 0.05 * value, c: chroma * 0.9, h: hue };
+  const companion: Oklch = { l: 0.63 + 0.08 * value, c: companionChroma * 0.95, h: companionHue };
+  const deep: Oklch = { l: 0.17 + 0.05 * value, c: chroma * 0.6, h: hue };
+  // the vignette wash is static (no hue drift), so it wants a concrete sRGB
+  const deepRgb = oklchToRgb(deep);
+  // A brighter tint of the card's own hue for the inner-glow rim — same hue,
+  // similar chroma, just lifted in lightness so the card edge reads as
+  // catching light. Kept opaque; <MeshGradient> softens it with color-mix.
+  const rimTint: Oklch = { l: 0.9 + 0.04 * value, c: chroma * 0.78, h: hue };
 
   const j = (v: number, amt: number) => rng.jitter(v, amt);
   const layers: GradientLayer[] = [];
   const glow = (
-    x: number, y: number, rx: number, ry: number, color: RGB, alpha: number,
-  ) => layers.push({ background: softLight(x, y, rx, ry, color, alpha) });
+    x: number, y: number, rx: number, ry: number, color: Oklch, alpha: number,
+  ) => layers.push({
+    background: softLight(x, y, rx, ry, color, alpha),
+    kind: "glow",
+    motion: motionFor(motionRng),
+  });
   const shadeWash = (alpha: number) =>
-    layers.push({ background: vignetteWash(deep, alpha) });
+    layers.push({ background: vignetteWash(deepRgb, alpha), kind: "vignette" });
 
   let base = field;
 
@@ -192,17 +354,19 @@ export function buildGradient(palette: Palette, opts: BuildOptions = {}): Gradie
   }
 
   return {
-    base: `rgb(${base.r} ${base.g} ${base.b})`,
+    base: oklchToCss(base),
     layers,
     grain: 0.18,
+    rim: oklchToCss(rimTint),
     archetype,
   };
 }
 
 /**
  * Flatten a spec into a single CSS `background` value — every layer composites
- * normally, so the whole mesh can live on one element. This is the path the
- * `<MeshGradient>` component uses; the grain is applied as a separate overlay.
+ * normally, so the whole mesh can live on one element. This is a *static*
+ * flattening: it drops the per-layer drift animation. `<MeshGradient>` renders
+ * the layers as separate elements instead, so the soft lights can move.
  */
 export function meshGradientCSS(spec: GradientSpec): string {
   return [...spec.layers]

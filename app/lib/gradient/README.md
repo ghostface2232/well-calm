@@ -40,11 +40,41 @@ reference artwork.
 2. one or two soft `radial-gradient` lights — a companion-hue glow, sometimes
    a primary-hue glow, plus a shade for depth
 3. an elliptical vignette that seats the gradient inside the card
-4. fractal-noise grain — dithers away banding, adds texture
+4. an inner-glow rim — a soft light catch (a brighter tint of the card's hue)
+   hugging the inside of the card edge, à la Photoshop's "Inner Glow"
+5. fractal-noise grain — dithers away banding, adds texture
 
 Rendered by `<MeshGradient>` (`app/components/MeshGradient.tsx`), a Server
-Component. The mesh composites normally, so it flattens onto a single static
-element — pinned exactly to the card frame, with no client JavaScript.
+Component. Each layer is its own element so the soft lights can move
+independently; there is still no client JavaScript.
+
+## Motion
+
+The gradient is **alive, not static**. Every glow layer carries a `motion`
+profile — generated deterministically from a separate seed stream, so the
+colour/composition is untouched — and drifts continuously:
+
+- **Motion is inside the gradient.** The keyframes animate the radial
+  gradient's _centre_, _radius_, _mid-stop_ and _hue_ — not a transform on the
+  element. The element stays pinned to the card frame, so the light shifts,
+  swells and changes colour *within* it and never leaves a gap at the edge.
+- **Hue drifts too.** The glow colours are emitted as `oklch()` with the hue
+  fed by `calc(… + var(--wc-hue) + var(--wc-hue2))`, so each light wanders a
+  little warmer and cooler over its loop. The base field stays fixed as the
+  anchor.
+- **Irregular, never repeating.** Two oscillators are superimposed —
+  `wc-mesh-drift` (broad) and `wc-mesh-wobble` (smaller, slower). The gradient
+  sums them, and their loop lengths don't divide evenly, so the combined
+  motion is quasi-periodic: it keeps wandering without settling into a
+  recognisable repeat. The wander nodes themselves are unevenly spaced too.
+- **Volumetric drift.** Each light's centre roams a wide irregular path while
+  it swells, dims and redistributes its colour falloff. Layers run at their
+  own tempo and start out of phase, so they cross at different rates.
+- **Vignette stays pinned.** Only the glows animate; the edge wash is static.
+- **Cheap + accessible.** Pure CSS, no JS. The animated values are custom
+  properties registered with `@property` (so they interpolate instead of
+  jumping); the keyframes live in `app/globals.css`.
+  `prefers-reduced-motion: reduce` holds everything still.
 
 ## Usage
 

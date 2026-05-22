@@ -15,10 +15,19 @@ function Slider({
 }) {
   return (
     <div className="relative w-full h-[50px] flex flex-col justify-center">
-      <div className="relative h-[6px] rounded-full bg-black/15">
+      <div className="relative h-[6px] rounded-full bg-white/15">
+        {/* filled portion — the track from the left edge up to the thumb
+            centre, so everything behind the thumb reads as "already set" */}
+        <div
+          className="absolute left-0 top-0 h-full rounded-full bg-blue-500"
+          style={{ width: `calc(14px + (100% - 28px) * ${value} / 100)` }}
+        />
+        {/* The thumb centre travels within [14px, trackWidth − 14px], so the
+            track keeps a small dead-zone at each end. The −19px re-centres the
+            38px-wide thumb on that position. */}
         <div
           className="absolute top-1/2 -translate-y-1/2 w-[38px] h-[24px] rounded-full bg-white shadow-[0_0.5px_4px_rgba(0,0,0,0.12),0_6px_13px_rgba(0,0,0,0.12)] cursor-pointer"
-          style={{ left: `calc(${value}% - 19px)` }}
+          style={{ left: `calc(14px + (100% - 28px) * ${value} / 100 - 19px)` }}
         />
       </div>
       <input
@@ -27,11 +36,11 @@ function Slider({
         max={100}
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value, 10))}
-        className="absolute inset-0 opacity-0 cursor-pointer"
+        className="absolute inset-y-0 inset-x-[14px] opacity-0 cursor-pointer"
         aria-label="slider"
       />
       {showTicks && (
-        <div className="absolute left-0 right-0 top-[calc(50%+18px)] flex justify-between">
+        <div className="absolute inset-x-[14px] top-[calc(50%+18px)] flex justify-between">
           <span className="w-2 h-2 rounded-full bg-orange-500" />
           <span className="w-2 h-2 rounded-full bg-neutral-300" />
           <span className="w-2 h-2 rounded-full bg-indigo-400" />
@@ -52,7 +61,7 @@ function ControlCard({
       cornerSmoothing={0.7}
       asChild
     >
-      <div className="w-full bg-white p-[20px] space-y-[12px]">{children}</div>
+      <div className="w-full bg-[#1c1c1e] p-[20px] space-y-[12px]">{children}</div>
     </Squircle>
   );
 }
@@ -68,9 +77,9 @@ function ControlRow({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-[18px] font-medium text-black px-[5px] mb-1 max-[340px]:text-[16px]">
+      <div className="flex items-center justify-between text-[18px] font-medium text-white px-[5px] mb-1 max-[340px]:text-[16px]">
         <span>{label}</span>
-        {chevron && <span className="text-neutral-400 text-[14px] max-[340px]:text-[13px]">›</span>}
+        {chevron && <span className="text-white/40 text-[14px] max-[340px]:text-[13px]">›</span>}
       </div>
       {children && <div className="px-[5px]">{children}</div>}
     </div>
@@ -95,14 +104,14 @@ export default function AmbientPage() {
         </div>
 
         <section>
-          <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] mb-[14px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
+          <h2 className="text-[28px] font-normal leading-[1.08] text-white px-[9px] mb-[14px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
             Lightings
           </h2>
           <ControlCard>
             <ControlRow label="Brightness">
               <Slider value={brightness} onChange={setBrightness} />
             </ControlRow>
-            <div className="h-px bg-neutral-200" />
+            <div className="h-px bg-white/10" />
             <ControlRow label="Color Temperature">
               <Slider value={colorTemp} onChange={setColorTemp} showTicks />
             </ControlRow>
@@ -110,14 +119,14 @@ export default function AmbientPage() {
         </section>
 
         <section>
-          <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] mb-[14px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
+          <h2 className="text-[28px] font-normal leading-[1.08] text-white px-[9px] mb-[14px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
             Sounds
           </h2>
           <ControlCard>
             <ControlRow label="Mood" chevron />
-            <div className="h-px bg-neutral-200" />
+            <div className="h-px bg-white/10" />
             <ControlRow label="Volume Cap">
-              <Slider value={volumeCap} onChange={setVolumeCap} showTicks />
+              <Slider value={volumeCap} onChange={setVolumeCap} />
             </ControlRow>
           </ControlCard>
         </section>

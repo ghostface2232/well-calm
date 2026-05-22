@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eeeeef;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ededed;
 }
 
 body {
@@ -21,12 +21,171 @@ body {
 
 /* Fine fractal-noise grain — dithers the gradient (kills banding) and adds a
    subtle tactile texture, matching the reference artwork. Opacity is set
-   per-spec by the <MeshGradient> component. */
+   per-spec by the <MeshGradient> component. It drifts very slowly (the tile
+   stitches seamlessly, so a 120px shift loops) for a faint living shimmer. */
 .wc-mesh-grain {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='wc-noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23wc-noise)'/%3E%3C/svg%3E");
   background-size: 120px 120px;
   mix-blend-mode: overlay;
   pointer-events: none;
+  animation: wc-mesh-grain-shift 38s linear infinite;
+}
+
+@keyframes wc-mesh-grain-shift {
+  from { background-position: 0 0; }
+  to { background-position: 120px 120px; }
+}
+
+/* Inner-glow rim — a soft light catch hugging the inside of the card edge,
+   à la Photoshop's "Inner Glow". `--wc-rim` (a slightly brighter tint of the
+   card's own hue) is set per-card by <MeshGradient>; `color-mix` softens it
+   to two translucent passes — a crisp edge catch plus a wider bloom. Drawn as
+   an inset box-shadow so it follows the rounded corners; the card's squircle
+   clip and the blur keep it seamless and let it melt into the gradient. */
+.wc-mesh-rim {
+  border-radius: 40px;
+  box-shadow:
+    inset 0 0 7px 0 color-mix(in oklab, var(--wc-rim) 78%, transparent),
+    inset 0 0 23px 2px color-mix(in oklab, var(--wc-rim) 50%, transparent);
+  pointer-events: none;
+}
+
+/* These drive a glow's gradient — its centre (cx, cy), radius (rs), mid-stop
+   (mid) and hue. They must be *registered* so they interpolate smoothly
+   inside @keyframes; an unregistered custom property animates discretely
+   (jumps), not gradually. The `2` set is a second oscillator: the gradient
+   sums both (see softLight() in app/lib/gradient/mesh.ts), and as they run at
+   unrelated tempos the combined motion never settles into an obvious repeat. */
+@property --wc-cx {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --wc-cy {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --wc-rs {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --wc-mid {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --wc-cx2 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --wc-cy2 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --wc-rs2 {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --wc-mid2 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+@property --wc-hue {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --wc-hue2 {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Volumetric drift — each soft light wanders through an irregular loop while
+   it swells, dims and redistributes its colour falloff. Crucially the motion
+   is *inside* the gradient (centre/radius/mid-stop), not a transform on the
+   element — so the layer always covers the card frame and never leaves a gap
+   at the edge.
+
+   Two loops run at once — `wc-mesh-drift` (broad) and `wc-mesh-wobble`
+   (smaller, slower) — and the gradient sums them. Their durations don't
+   divide evenly, so the combined motion is quasi-periodic: it keeps wandering
+   without ever settling into a recognisable repeat. Per-layer wander nodes,
+   amplitudes and the two durations come from custom properties set by
+   <MeshGradient>. */
+.wc-mesh-glow {
+  animation-name: wc-mesh-drift, wc-mesh-wobble;
+  animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+  animation-iteration-count: infinite;
+  will-change: opacity;
+}
+
+@keyframes wc-mesh-drift {
+  0%, 100% {
+    --wc-cx: 0%;
+    --wc-cy: 0%;
+    --wc-rs: 1;
+    --wc-mid: 0%;
+    --wc-hue: 0deg;
+    opacity: var(--wc-o0, 1);
+  }
+  25% {
+    --wc-cx: var(--wc-x1, 0%);
+    --wc-cy: var(--wc-y1, 0%);
+    --wc-rs: var(--wc-rhi, 1.08);
+    --wc-mid: var(--wc-mhi, 0%);
+    --wc-hue: var(--wc-hhi, 0deg);
+    opacity: var(--wc-o1, 0.94);
+  }
+  50% {
+    --wc-cx: var(--wc-x2, 0%);
+    --wc-cy: var(--wc-y2, 0%);
+    --wc-rs: 1;
+    --wc-mid: 0%;
+    --wc-hue: 0deg;
+    opacity: var(--wc-o0, 1);
+  }
+  75% {
+    --wc-cx: var(--wc-x3, 0%);
+    --wc-cy: var(--wc-y3, 0%);
+    --wc-rs: var(--wc-rhi, 1.08);
+    --wc-mid: var(--wc-mhi, 0%);
+    --wc-hue: calc(-1 * var(--wc-hhi, 0deg));
+    opacity: var(--wc-o1, 0.94);
+  }
+}
+
+/* The second oscillator — smaller, slower, two wander nodes. Summed with
+   wc-mesh-drift by the gradient; its unrelated period is what makes the
+   overall motion irregular rather than a clean loop. */
+@keyframes wc-mesh-wobble {
+  0%, 100% {
+    --wc-cx2: 0%;
+    --wc-cy2: 0%;
+    --wc-rs2: 1;
+    --wc-mid2: 0%;
+    --wc-hue2: 0deg;
+  }
+  33.33% {
+    --wc-cx2: var(--wc-wx1, 0%);
+    --wc-cy2: var(--wc-wy1, 0%);
+    --wc-rs2: var(--wc-rhi2, 1.08);
+    --wc-mid2: var(--wc-mhi2, 0%);
+    --wc-hue2: var(--wc-hhi2, 0deg);
+  }
+  66.67% {
+    --wc-cx2: var(--wc-wx2, 0%);
+    --wc-cy2: var(--wc-wy2, 0%);
+    --wc-rs2: 1;
+    --wc-mid2: 0%;
+    --wc-hue2: calc(-1 * var(--wc-hhi2, 0deg));
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -83,5 +242,11 @@ body {
   ::view-transition-new(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
+  }
+
+  /* hold the mesh gradients still for anyone who asks for less motion */
+  .wc-mesh-glow,
+  .wc-mesh-grain {
+    animation: none !important;
   }
 }
