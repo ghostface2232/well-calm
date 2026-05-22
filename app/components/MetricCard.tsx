@@ -57,7 +57,7 @@ export function MetricCard({
           className={`absolute inset-0${heroName ? " rounded-[40px]" : ""}`}
         />
 
-        <div className="relative h-full px-[18px] py-[24px] flex flex-col text-white">
+        <div className="relative h-full px-[22px] py-[24px] flex flex-col text-white">
           <div
             className="text-[34px] font-normal leading-none max-[380px]:text-[30px] max-[340px]:text-[27px]"
             style={{ viewTransitionName: titleTransitionName }}

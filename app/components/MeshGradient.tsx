@@ -79,7 +79,7 @@ function GradientLayerView({ layer }: { layer: GradientLayer }) {
   }
 
   // Per-layer motion params feed two superimposed keyframe loops — see
-  // app/globals.css. The keyframes animate the gradient's centre/size/falloff
+  // app/globals.css. The keyframes animate the gradient's centre/axis/falloff
   // (not the element), so the light shifts inside a frame that never moves;
   // the two loops run at unrelated tempos, so the motion never quite repeats.
   const { primary: p, secondary: s } = layer.motion;
@@ -94,14 +94,16 @@ function GradientLayerView({ layer }: { layer: GradientLayer }) {
     "--wc-y2": `${p.nodes[1][1]}%`,
     "--wc-x3": `${p.nodes[2][0]}%`,
     "--wc-y3": `${p.nodes[2][1]}%`,
-    "--wc-rhi": `${p.rhi}`,
+    "--wc-rxhi": `${p.xhi}`,
+    "--wc-ryhi": `${p.yhi}`,
     "--wc-mhi": `${p.mhi}%`,
     "--wc-hhi": `${p.hue}deg`,
     "--wc-wx1": `${s.nodes[0][0]}%`,
     "--wc-wy1": `${s.nodes[0][1]}%`,
     "--wc-wx2": `${s.nodes[1][0]}%`,
     "--wc-wy2": `${s.nodes[1][1]}%`,
-    "--wc-rhi2": `${s.rhi}`,
+    "--wc-rxhi2": `${s.xhi}`,
+    "--wc-ryhi2": `${s.yhi}`,
     "--wc-mhi2": `${s.mhi}%`,
     "--wc-hhi2": `${s.hue}deg`,
     "--wc-o0": `${layer.motion.o0}`,

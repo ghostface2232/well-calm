@@ -42,17 +42,19 @@ export type Vec = readonly [number, number];
 
 /**
  * One drifting oscillator: a centre wander through `nodes` plus a synced
- * radius/colour-falloff breathe, running on its own loop. The light moves
- * inside a fixed element (added to the gradient's base centre), so there is
- * never an edge gap.
+ * x/y-axis radius and colour-falloff breathe, running on its own loop. The
+ * light moves inside a fixed element (added to the gradient's base centre),
+ * so there is never an edge gap.
  */
 export interface DriftOscillator {
   /** loop duration, seconds */
   dur: number;
   /** negative start offset, seconds — desyncs it from siblings */
   delay: number;
-  /** radius multiplier at the breathe peak — the light swells, then settles */
-  rhi: number;
+  /** x-axis radius multiplier at the breathe peak */
+  xhi: number;
+  /** y-axis radius multiplier at the breathe peak */
+  yhi: number;
   /** mid-stop shift at the breathe peak, % — redistributes the colour falloff */
   mhi: number;
   /** hue swing amplitude, degrees — the colour drifts warmer, then cooler */
@@ -148,24 +150,24 @@ function oklchStop(c: Oklch, alpha: number): string {
 /**
  * A soft radial that fades a colour out to nothing — the core building block.
  *
- * Centre, radius, mid-stop and hue are all expressed against animatable
+ * Centre, ellipse axes, mid-stop and hue are all expressed against animatable
  * custom properties registered in app/globals.css. Two oscillators feed each
- * one — `--wc-cx` + `--wc-cx2` for the centre, `--wc-rs` * `--wc-rs2` for the
- * radius, `--wc-hue` + `--wc-hue2` for the hue, and so on — running at
+ * one — `--wc-cx` + `--wc-cx2` for the centre, x/y radius multipliers for the
+ * ellipse axes, `--wc-hue` + `--wc-hue2` for the hue, and so on — running at
  * unrelated tempos, so the summed motion is irregular and never settles into
  * an obvious repeat. At their defaults this is exactly the static gradient;
- * when <MeshGradient> animates them the light drifts, swells, redistributes
- * and shifts hue *inside* its element — the element never moves, so the
- * gradient always covers the card frame (no edge gap). Each `var()` carries a
- * fallback, so the gradient is valid even when unset.
+ * when <MeshGradient> animates them the light drifts, swells asymmetrically,
+ * redistributes and shifts hue *inside* its element — the element never moves,
+ * so the gradient always covers the card frame (no edge gap). Each `var()`
+ * carries a fallback, so the gradient is valid even when unset.
  */
 function softLight(
   x: number, y: number, rx: number, ry: number, color: Oklch, alpha: number,
 ): string {
   return (
     `radial-gradient(` +
-    `calc(${round(rx)}% * var(--wc-rs, 1) * var(--wc-rs2, 1)) ` +
-    `calc(${round(ry)}% * var(--wc-rs, 1) * var(--wc-rs2, 1)) ` +
+    `calc(${round(rx)}% * var(--wc-rsx, 1) * var(--wc-rsx2, 1)) ` +
+    `calc(${round(ry)}% * var(--wc-rsy, 1) * var(--wc-rsy2, 1)) ` +
     `at calc(${round(x)}% + var(--wc-cx, 0%) + var(--wc-cx2, 0%)) ` +
     `calc(${round(y)}% + var(--wc-cy, 0%) + var(--wc-cy2, 0%)), ` +
     `${oklchStop(color, alpha)} 0%, ` +
@@ -185,14 +187,14 @@ function vignetteWash(color: RGB, alpha: number): string {
 /**
  * Build one oscillator: `count` centre-wander nodes spaced *unevenly* around
  * a loop — jittered both in angle and in radius, so the path is an irregular
- * wander, not a tidy polygon — plus a radius/colour breathe and its own tempo.
+ * wander, not a tidy polygon — plus an axis/colour breathe and its own tempo.
  */
 function oscillator(
   rng: Rng,
   count: number,
   reach: number,
   dur: Vec,
-  rhi: Vec,
+  axisHi: Vec,
   mhi: Vec,
   hue: Vec,
 ): DriftOscillator {
@@ -204,11 +206,16 @@ function oscillator(
     const r = rng.jitter(reach, reach * 0.5);
     nodes.push([round(Math.cos(a) * r, 2), round(Math.sin(a) * r, 2)]);
   }
+  const swell = rng.range(axisHi[0], axisHi[1]);
+  const major = round(swell + rng.range(0.03, 0.13), 3);
+  const minor = round(Math.max(1.02, swell - rng.range(0.02, 0.08)), 3);
+  const majorFirst = rng.next() < 0.5;
   const d = round(rng.range(dur[0], dur[1]), 2);
   return {
     dur: d,
     delay: -round(rng.range(0, d), 2),
-    rhi: round(rng.range(rhi[0], rhi[1]), 3),
+    xhi: majorFirst ? major : minor,
+    yhi: majorFirst ? minor : major,
     mhi: round(rng.range(mhi[0], mhi[1]), 1),
     hue: round(rng.range(hue[0], hue[1]), 1),
     nodes,
@@ -229,7 +236,7 @@ function oscillator(
  */
 function motionFor(rng: Rng): LayerMotion {
   return {
-    // reach, [dur], [radius], [mid-stop], [hue°]
+    // reach, [dur], [axis swell], [mid-stop], [hue°]
     primary: oscillator(
       rng, 3, rng.range(10, 15), [3, 5], [1.18, 1.36], [14, 22], [5, 11],
     ),

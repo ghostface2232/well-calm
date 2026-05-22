@@ -50,12 +50,13 @@ body {
   pointer-events: none;
 }
 
-/* These drive a glow's gradient — its centre (cx, cy), radius (rs), mid-stop
-   (mid) and hue. They must be *registered* so they interpolate smoothly
-   inside @keyframes; an unregistered custom property animates discretely
-   (jumps), not gradually. The `2` set is a second oscillator: the gradient
-   sums both (see softLight() in app/lib/gradient/mesh.ts), and as they run at
-   unrelated tempos the combined motion never settles into an obvious repeat. */
+/* These drive a glow's gradient — its centre (cx, cy), x/y ellipse axes
+   (rsx, rsy), mid-stop (mid) and hue. They must be *registered* so they
+   interpolate smoothly inside @keyframes; an unregistered custom property
+   animates discretely (jumps), not gradually. The `2` set is a second
+   oscillator: the gradient sums both (see softLight() in
+   app/lib/gradient/mesh.ts), and as they run at unrelated tempos the combined
+   motion never settles into an obvious repeat. */
 @property --wc-cx {
   syntax: "<percentage>";
   inherits: false;
@@ -66,7 +67,12 @@ body {
   inherits: false;
   initial-value: 0%;
 }
-@property --wc-rs {
+@property --wc-rsx {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --wc-rsy {
   syntax: "<number>";
   inherits: false;
   initial-value: 1;
@@ -86,7 +92,12 @@ body {
   inherits: false;
   initial-value: 0%;
 }
-@property --wc-rs2 {
+@property --wc-rsx2 {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+@property --wc-rsy2 {
   syntax: "<number>";
   inherits: false;
   initial-value: 1;
@@ -108,10 +119,10 @@ body {
 }
 
 /* Volumetric drift — each soft light wanders through an irregular loop while
-   it swells, dims and redistributes its colour falloff. Crucially the motion
-   is *inside* the gradient (centre/radius/mid-stop), not a transform on the
-   element — so the layer always covers the card frame and never leaves a gap
-   at the edge.
+   its centre, ellipse axes, brightness and colour falloff breathe. Crucially
+   the motion is *inside* the gradient (centre/axis/mid-stop), not a
+   transform on the element — so the layer always covers the card frame and
+   never leaves a gap at the edge.
 
    Two loops run at once — `wc-mesh-drift` (broad) and `wc-mesh-wobble`
    (smaller, slower) — and the gradient sums them. Their durations don't
@@ -130,7 +141,8 @@ body {
   0%, 100% {
     --wc-cx: 0%;
     --wc-cy: 0%;
-    --wc-rs: 1;
+    --wc-rsx: 1;
+    --wc-rsy: 1;
     --wc-mid: 0%;
     --wc-hue: 0deg;
     opacity: var(--wc-o0, 1);
@@ -138,7 +150,8 @@ body {
   25% {
     --wc-cx: var(--wc-x1, 0%);
     --wc-cy: var(--wc-y1, 0%);
-    --wc-rs: var(--wc-rhi, 1.08);
+    --wc-rsx: var(--wc-rxhi, 1.12);
+    --wc-rsy: var(--wc-ryhi, 1.08);
     --wc-mid: var(--wc-mhi, 0%);
     --wc-hue: var(--wc-hhi, 0deg);
     opacity: var(--wc-o1, 0.94);
@@ -146,7 +159,8 @@ body {
   50% {
     --wc-cx: var(--wc-x2, 0%);
     --wc-cy: var(--wc-y2, 0%);
-    --wc-rs: 1;
+    --wc-rsx: 1;
+    --wc-rsy: 1;
     --wc-mid: 0%;
     --wc-hue: 0deg;
     opacity: var(--wc-o0, 1);
@@ -154,7 +168,8 @@ body {
   75% {
     --wc-cx: var(--wc-x3, 0%);
     --wc-cy: var(--wc-y3, 0%);
-    --wc-rs: var(--wc-rhi, 1.08);
+    --wc-rsx: var(--wc-ryhi, 1.08);
+    --wc-rsy: var(--wc-rxhi, 1.12);
     --wc-mid: var(--wc-mhi, 0%);
     --wc-hue: calc(-1 * var(--wc-hhi, 0deg));
     opacity: var(--wc-o1, 0.94);
@@ -168,21 +183,24 @@ body {
   0%, 100% {
     --wc-cx2: 0%;
     --wc-cy2: 0%;
-    --wc-rs2: 1;
+    --wc-rsx2: 1;
+    --wc-rsy2: 1;
     --wc-mid2: 0%;
     --wc-hue2: 0deg;
   }
   33.33% {
     --wc-cx2: var(--wc-wx1, 0%);
     --wc-cy2: var(--wc-wy1, 0%);
-    --wc-rs2: var(--wc-rhi2, 1.08);
+    --wc-rsx2: var(--wc-rxhi2, 1.08);
+    --wc-rsy2: var(--wc-ryhi2, 1.04);
     --wc-mid2: var(--wc-mhi2, 0%);
     --wc-hue2: var(--wc-hhi2, 0deg);
   }
   66.67% {
     --wc-cx2: var(--wc-wx2, 0%);
     --wc-cy2: var(--wc-wy2, 0%);
-    --wc-rs2: 1;
+    --wc-rsx2: var(--wc-ryhi2, 1.04);
+    --wc-rsy2: var(--wc-rxhi2, 1.08);
     --wc-mid2: 0%;
     --wc-hue2: calc(-1 * var(--wc-hhi2, 0deg));
   }

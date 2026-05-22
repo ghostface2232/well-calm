@@ -55,9 +55,10 @@ profile — generated deterministically from a separate seed stream, so the
 colour/composition is untouched — and drifts continuously:
 
 - **Motion is inside the gradient.** The keyframes animate the radial
-  gradient's _centre_, _radius_, _mid-stop_ and _hue_ — not a transform on the
-  element. The element stays pinned to the card frame, so the light shifts,
-  swells and changes colour *within* it and never leaves a gap at the edge.
+  gradient's _centre_, _x/y ellipse axes_, _mid-stop_ and _hue_ — not a
+  transform on the element. The element stays pinned to the card frame, so the
+  light shifts, changes its internal axis, swells and changes colour *within*
+  it and never leaves a gap at the edge.
 - **Hue drifts too.** The glow colours are emitted as `oklch()` with the hue
   fed by `calc(… + var(--wc-hue) + var(--wc-hue2))`, so each light wanders a
   little warmer and cooler over its loop. The base field stays fixed as the
@@ -68,8 +69,9 @@ colour/composition is untouched — and drifts continuously:
   motion is quasi-periodic: it keeps wandering without settling into a
   recognisable repeat. The wander nodes themselves are unevenly spaced too.
 - **Volumetric drift.** Each light's centre roams a wide irregular path while
-  it swells, dims and redistributes its colour falloff. Layers run at their
-  own tempo and start out of phase, so they cross at different rates.
+  its ellipse axes trade emphasis, it dims and redistributes its colour
+  falloff. Layers run at their own tempo and start out of phase, so they cross
+  at different rates.
 - **Vignette stays pinned.** Only the glows animate; the edge wash is static.
 - **Cheap + accessible.** Pure CSS, no JS. The animated values are custom
   properties registered with `@property` (so they interpolate instead of
