@@ -40,7 +40,7 @@ export function AppShell({ active, children }: { active: TabKey; children: React
             <div
               className={`h-[37px] rounded-[40px] flex items-center justify-center text-[20px] font-medium backdrop-blur-md max-[340px]:text-[18px] ${
                 isActive
-                  ? "bg-white/30 text-white/92"
+                  ? "wc-tab-bounce bg-white/30 text-white/92"
                   : "bg-white/10 text-white/55"
               } ${tab.enabled ? "cursor-pointer" : "cursor-not-allowed"}`}
               style={{ width: `${tab.width}px` }}
@@ -62,7 +62,14 @@ export function AppShell({ active, children }: { active: TabKey; children: React
           );
 
           return tab.enabled ? (
-            <Link key={tab.key} href={tab.href} className="shrink-0">
+            <Link
+              key={tab.key}
+              href={tab.href}
+              // tags the navigation's view transition so app/globals.css can
+              // give tab switches their own quick crossfade
+              transitionTypes={["tab"]}
+              className="shrink-0"
+            >
               {wrapped}
             </Link>
           ) : (

@@ -1,7 +1,14 @@
+import { CSSProperties } from "react";
 import Image from "next/image";
 import { Squircle } from "@squircle-js/react";
 import { AppShell } from "../components/AppShell";
 
+// The memoji PNGs are framed inconsistently — Carl is a 256×256 head-only
+// crop, the others are 421×421 full memojis — so each lands at a different
+// size and height. `transform` normalizes them: `scale` brings every figure
+// to ~84% of the frame height, `translateY` centers its alpha bounding box
+// (CSS order applies scale first, then translate). The content percentages
+// in each comment are the measured non-transparent box of that PNG.
 const FRIENDS = [
   {
     name: "Carl",
@@ -9,6 +16,11 @@ const FRIENDS = [
     bg: "linear-gradient(0deg, #858686 5%, #d5d4cd 100%)",
     accent:
       "radial-gradient(ellipse at 55% 50%, rgba(75,122,122,1) 0%, rgba(67,196,255,0.59) 45%, transparent 100%)",
+    // content 51%w × 68%h, centered 51%,47% — head-only crop, scaled up most
+    transform: "translateY(3.3%) scale(1.25)",
+    // inner-glow rim — a pale, brighter tint of the card's own hue (see State
+    // cards), fed to `.wc-mesh-rim` via --wc-rim in app/globals.css
+    rim: "#d8eefa",
   },
   {
     name: "Mary",
@@ -16,6 +28,9 @@ const FRIENDS = [
     bg: "linear-gradient(0deg, #e9822e 5%, #d5d4cd 100%)",
     accent:
       "radial-gradient(ellipse at 55% 50%, rgba(255,67,95,1) 0%, rgba(255,67,95,0.59) 45%, transparent 100%)",
+    // content 72%w × 83%h, centered 50%,54% — long hair sits low, nudge up
+    transform: "translateY(-3.7%) scale(1)",
+    rim: "#ffdcd2",
   },
   {
     name: "Jason",
@@ -23,6 +38,9 @@ const FRIENDS = [
     bg: "linear-gradient(0deg, #10a65e 5%, #d5d4cd 100%)",
     accent:
       "radial-gradient(ellipse at 55% 50%, rgba(188,255,43,1) 0%, rgba(188,255,43,0.59) 45%, transparent 100%)",
+    // content 71%w × 86%h, centered 44%,44% — fist sits high, nudge down
+    transform: "translateY(4.9%) scale(1)",
+    rim: "#eafac9",
   },
   {
     name: "Emma",
@@ -30,6 +48,9 @@ const FRIENDS = [
     bg: "linear-gradient(0deg, #10a65e 5%, #d5d4cd 100%)",
     accent:
       "radial-gradient(ellipse at 55% 50%, rgba(69,75,184,1) 0%, rgba(69,75,184,0.59) 45%, transparent 100%)",
+    // content 71%w × 85%h, centered 41%,53%
+    transform: "translateY(-2.5%) scale(1)",
+    rim: "#dee0f3",
   },
 ];
 
@@ -80,34 +101,46 @@ export default function SocialPage() {
           Share your vibe with…
         </h2>
 
-        <div className="mt-[14px] -mx-[14px] px-[14px] pb-2 grid grid-flow-col auto-cols-[144px] gap-[6px] overflow-x-auto scrollbar-none">
+        <div
+          className="relative left-1/2 mt-[14px] w-screen -translate-x-1/2 pb-2 grid grid-flow-col auto-cols-[158px] gap-[6px] overflow-x-auto scrollbar-none"
+          style={{
+            paddingLeft: "max(14px, calc((100vw - 402px) / 2 + 14px))",
+            paddingRight: "max(14px, calc((100vw - 402px) / 2 + 14px))",
+          }}
+        >
           {FRIENDS.map((f) => (
             <Squircle
               key={f.name}
               cornerRadius={40}
               cornerSmoothing={0.7}
-              defaultWidth={144}
-              defaultHeight={189}
+              defaultWidth={158}
+              defaultHeight={208}
               asChild
             >
               <div
-                className="relative w-full h-[189px] overflow-hidden flex flex-col items-center justify-center gap-[14px] p-[16px]"
+                className="relative w-full h-[208px] overflow-hidden flex flex-col items-center justify-center gap-[14px] p-[16px]"
                 style={{ background: f.bg }}
               >
                 <div
                   className="absolute inset-0 mix-blend-screen opacity-90"
                   style={{ background: f.accent }}
                 />
-                <div className="relative w-[min(62%,104px)] aspect-[89/105]">
+                {/* inner-glow rim — same treatment as the State metric cards */}
+                <div
+                  className="wc-mesh-rim absolute inset-0"
+                  style={{ "--wc-rim": f.rim } as CSSProperties}
+                />
+                <div className="relative w-[min(72%,124px)] aspect-[89/105]">
                   <Image
                     src={f.img}
                     alt={f.name}
                     fill
                     className="object-contain"
-                    sizes="(min-width: 640px) 104px, 28vw"
+                    style={{ transform: f.transform }}
+                    sizes="(min-width: 640px) 124px, 32vw"
                   />
                 </div>
-                <span className="relative text-white font-medium text-[24px] leading-none max-[340px]:text-[22px]">
+                <span className="relative text-white font-medium text-[25px] leading-none max-[340px]:text-[22px]">
                   {f.name}
                 </span>
               </div>
@@ -133,6 +166,11 @@ export default function SocialPage() {
                 "linear-gradient(124deg, #e6be9d 2%, #df6807 84%), radial-gradient(ellipse at 55% 50%, rgba(255,242,202,0.59) 0%, rgba(230,190,157,1) 100%)",
             }}
           >
+            {/* inner-glow rim — same treatment as the State metric cards */}
+            <div
+              className="wc-mesh-rim absolute inset-0"
+              style={{ "--wc-rim": "#ffe8d0" } as CSSProperties}
+            />
             <div className="relative w-[164px] h-[204px] shrink-0 max-[360px]:w-[138px] max-[360px]:h-[172px]">
               <svg
                 viewBox="0 0 163.674 204"

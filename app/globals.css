@@ -236,6 +236,41 @@ body {
   to { opacity: 0; }
 }
 
+/* ---------------------------------------------------------------------------
+   Tab navigation
+   Route changes are wrapped in a browser View Transition
+   (experimental.viewTransition in next.config.ts), and each tab <Link> tags
+   its navigation with the `tab` transition type — so we can target *only* tab
+   switches here without disturbing the Calm card → modal transition above.
+--------------------------------------------------------------------------- */
+
+/* Content crossfade — speed every layer of a tab switch up to a quick fade.
+   The `*` deliberately includes the Calm card's calm-hero / calm-title /
+   calm-label groups: switching to or from the home screen would otherwise run
+   their slow modal-morph timing and leave the card lingering after the rest
+   of the page has settled. `:active-view-transition-type(tab)` adds a
+   pseudo-class, out-specifying those unscoped rules so the card just fades. */
+:active-view-transition-type(tab)::view-transition-group(*),
+:active-view-transition-type(tab)::view-transition-old(*),
+:active-view-transition-type(tab)::view-transition-new(*) {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Pressed-tab bounce — a small scale pop on the newly-active tab. The new DOM
+   is frozen as a transition snapshot while the crossfade plays, so the bounce
+   is delayed past it (≈ the 200ms crossfade) to land on the live, settled
+   tab rather than being swallowed by the snapshot. */
+.wc-tab-bounce {
+  animation: wc-tab-bounce 300ms ease-out 210ms both;
+}
+@keyframes wc-tab-bounce {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.11); }
+  72% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
@@ -244,9 +279,11 @@ body {
     animation-delay: 0s !important;
   }
 
-  /* hold the mesh gradients still for anyone who asks for less motion */
+  /* hold the mesh gradients still — and the tab bounce — for anyone who asks
+     for less motion (the crossfade is already zeroed by the rule above) */
   .wc-mesh-glow,
-  .wc-mesh-grain {
+  .wc-mesh-grain,
+  .wc-tab-bounce {
     animation: none !important;
   }
 }
