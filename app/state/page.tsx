@@ -7,7 +7,7 @@ import { StateDetail } from "../components/StateDetail";
  */
 export default function StateFullscreenPage() {
   return (
-    <div className="mx-auto h-dvh w-full max-w-[402px]">
+    <div className="h-dvh w-full">
       <StateDetail />
     </div>
   );

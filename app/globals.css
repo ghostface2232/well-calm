@@ -244,17 +244,30 @@ body {
    switches here without disturbing the Calm card → modal transition above.
 --------------------------------------------------------------------------- */
 
-/* Content crossfade — speed every layer of a tab switch up to a quick fade.
-   The `*` deliberately includes the Calm card's calm-hero / calm-title /
-   calm-label groups: switching to or from the home screen would otherwise run
-   their slow modal-morph timing and leave the card lingering after the rest
-   of the page has settled. `:active-view-transition-type(tab)` adds a
-   pseudo-class, out-specifying those unscoped rules so the card just fades. */
+/* Content crossfade — AppShell wraps <main> in React's <ViewTransition> and
+   maps tab navigations to `.wc-tab-content`. The wildcard rules catch named
+   Calm-card layers on the home tab so they fade with the page instead of
+   reusing the slower modal morph timing. */
 :active-view-transition-type(tab)::view-transition-group(*),
-:active-view-transition-type(tab)::view-transition-old(*),
-:active-view-transition-type(tab)::view-transition-new(*) {
-  animation-duration: 200ms;
+:active-view-transition-type(tab)::view-transition-group(.wc-tab-content) {
+  animation-duration: 240ms;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+:active-view-transition-type(tab)::view-transition-old(*),
+::view-transition-old(.wc-tab-content) {
+  animation: wc-tab-fade-out 150ms ease-in both;
+}
+:active-view-transition-type(tab)::view-transition-new(*),
+::view-transition-new(.wc-tab-content) {
+  animation: wc-tab-fade-in 190ms ease-out 50ms both;
+}
+@keyframes wc-tab-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes wc-tab-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 /* Pressed-tab bounce — triggered directly on pointer down so feedback lands at

@@ -32,8 +32,7 @@ export function CalmModal({ onClose }: { onClose: () => void }) {
       aria-label="Calm — Overall Mental State"
       className="fixed inset-0 z-50"
     >
-      {/* the app-width frame, centred over the home screen */}
-      <div className="relative mx-auto h-full w-full max-w-[402px]">
+      <div className="relative h-full w-full">
         <StateDetail onClose={onClose} />
       </div>
     </div>

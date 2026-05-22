@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, ViewTransition } from "react";
 import { TabNav, type TabKey } from "./TabNav";
 
 export function AppShell({ active, children }: { active: TabKey; children: ReactNode }) {
@@ -12,7 +12,17 @@ export function AppShell({ active, children }: { active: TabKey; children: React
 
       <TabNav active={active} />
 
-      <main className="mt-[24px]">{children}</main>
+      <ViewTransition
+        key={active}
+        name="app-tab-content"
+        share={{ tab: "wc-tab-content", default: "none" }}
+        enter={{ tab: "wc-tab-content", default: "none" }}
+        exit={{ tab: "wc-tab-content", default: "none" }}
+        update={{ tab: "wc-tab-content", default: "none" }}
+        default="none"
+      >
+        <main className="mt-[24px]">{children}</main>
+      </ViewTransition>
     </div>
   );
 }
