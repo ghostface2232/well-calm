@@ -20,19 +20,25 @@ const TABS: {
 
 export function AppShell({ active, children }: { active: TabKey; children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[402px] min-h-screen bg-[#ededed] px-[14px] pt-[53px] pb-10">
-      <h1 className="text-[40px] leading-[1.08] tracking-[-0.8px] text-black px-[9px]">
+    <div className="mx-auto w-full max-w-[402px] min-h-screen bg-[#eeeeef] px-[14px] pt-[53px] pb-10">
+      <h1 className="text-[40px] font-normal leading-[1.08] text-black px-[9px] max-[380px]:text-[37px] max-[340px]:text-[34px]">
         Hi, Mingwan.
         <br />
         How are you doing today?
       </h1>
 
-      <nav className="mt-[24px] flex gap-[5px] overflow-x-auto scrollbar-none -mx-[14px] px-[14px] pb-1">
+      <nav
+        className="relative left-1/2 mt-[24px] flex w-screen -translate-x-1/2 gap-[5px] overflow-x-auto scrollbar-none pb-1"
+        style={{
+          paddingLeft: "max(14px, calc((100vw - 402px) / 2 + 14px))",
+          paddingRight: "max(14px, calc((100vw - 402px) / 2 + 14px))",
+        }}
+      >
         {TABS.map((tab) => {
           const isActive = tab.key === active;
           const inner = (
             <div
-              className={`h-[37px] rounded-[40px] flex items-center justify-center text-[20px] backdrop-blur-md ${
+              className={`h-[37px] rounded-[40px] flex items-center justify-center text-[20px] font-medium backdrop-blur-md max-[340px]:text-[18px] ${
                 isActive ? "bg-white text-[#333]" : "bg-[#d6d6d6] text-[#696969]"
               } ${tab.enabled ? "cursor-pointer" : "cursor-not-allowed"}`}
               style={{ width: `${tab.width}px` }}

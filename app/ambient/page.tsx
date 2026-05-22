@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Squircle } from "@squircle-js/react";
 import { AppShell } from "../components/AppShell";
 
 function Slider({
@@ -40,9 +41,19 @@ function Slider({
   );
 }
 
-function ControlCard({ children }: { children: React.ReactNode }) {
+function ControlCard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="bg-white rounded-[40px] p-[20px] space-y-[12px]">{children}</div>
+    <Squircle
+      cornerRadius={40}
+      cornerSmoothing={0.7}
+      asChild
+    >
+      <div className="w-full bg-white p-[20px] space-y-[12px]">{children}</div>
+    </Squircle>
   );
 }
 
@@ -57,9 +68,9 @@ function ControlRow({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between text-[18px] text-black px-[5px] mb-1">
+      <div className="flex items-center justify-between text-[18px] font-medium text-black px-[5px] mb-1 max-[340px]:text-[16px]">
         <span>{label}</span>
-        {chevron && <span className="text-neutral-400 text-[14px]">›</span>}
+        {chevron && <span className="text-neutral-400 text-[14px] max-[340px]:text-[13px]">›</span>}
       </div>
       {children && <div className="px-[5px]">{children}</div>}
     </div>
@@ -75,14 +86,16 @@ export default function AmbientPage() {
   return (
     <AppShell active="ambient">
       <div className="space-y-[24px]">
-        <ControlCard>
-          <ControlRow label="Ambient Sensitivity">
-            <Slider value={ambient} onChange={setAmbient} />
-          </ControlRow>
-        </ControlCard>
+        <div>
+          <ControlCard>
+            <ControlRow label="Ambient Sensitivity">
+              <Slider value={ambient} onChange={setAmbient} />
+            </ControlRow>
+          </ControlCard>
+        </div>
 
         <section>
-          <h2 className="text-[28px] leading-[1.08] tracking-[-0.28px] text-black px-[9px] mb-[14px]">
+          <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] mb-[14px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
             Lightings
           </h2>
           <ControlCard>
@@ -97,7 +110,7 @@ export default function AmbientPage() {
         </section>
 
         <section>
-          <h2 className="text-[28px] leading-[1.08] tracking-[-0.28px] text-black px-[9px] mb-[14px]">
+          <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] mb-[14px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
             Sounds
           </h2>
           <ControlCard>

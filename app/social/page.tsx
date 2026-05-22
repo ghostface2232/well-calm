@@ -37,11 +37,11 @@ export default function SocialPage() {
   return (
     <AppShell active="social">
       <section>
-        <h2 className="text-[28px] leading-[1.08] tracking-[-0.28px] text-black px-[9px]">
+        <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
           Share your vibe with…
         </h2>
 
-        <div className="mt-[14px] -mx-[14px] px-[14px] pb-2 flex gap-[8px] overflow-x-auto scrollbar-none">
+        <div className="mt-[14px] -mx-[14px] px-[14px] pb-2 grid grid-flow-col auto-cols-[144px] gap-[6px] overflow-x-auto scrollbar-none">
           {FRIENDS.map((f) => (
             <Squircle
               key={f.name}
@@ -52,23 +52,23 @@ export default function SocialPage() {
               asChild
             >
               <div
-                className="relative shrink-0 w-[144px] h-[189px] overflow-hidden flex flex-col items-center justify-center gap-[14px] p-[16px]"
+                className="relative w-full h-[189px] overflow-hidden flex flex-col items-center justify-center gap-[14px] p-[16px]"
                 style={{ background: f.bg }}
               >
                 <div
                   className="absolute inset-0 mix-blend-screen opacity-90"
                   style={{ background: f.accent }}
                 />
-                <div className="relative w-[89px] h-[105px]">
+                <div className="relative w-[min(62%,104px)] aspect-[89/105]">
                   <Image
                     src={f.img}
                     alt={f.name}
                     fill
                     className="object-contain"
-                    sizes="89px"
+                    sizes="(min-width: 640px) 104px, 28vw"
                   />
                 </div>
-                <span className="relative text-white font-medium text-[24px] leading-none">
+                <span className="relative text-white font-medium text-[24px] leading-none max-[340px]:text-[22px]">
                   {f.name}
                 </span>
               </div>
@@ -78,66 +78,64 @@ export default function SocialPage() {
       </section>
 
       <section className="mt-[24px]">
-        <h2 className="text-[28px] leading-[1.08] tracking-[-0.28px] text-black px-[9px]">
+        <h2 className="text-[28px] font-normal leading-[1.08] text-black px-[9px] max-[380px]:text-[26px] max-[340px]:text-[24px]">
           The baton&rsquo;s open.
         </h2>
 
         <Squircle
           cornerRadius={40}
           cornerSmoothing={0.7}
-          defaultWidth={374}
-          defaultHeight={255}
           asChild
         >
           <div
-            className="mt-[14px] relative h-[255px] overflow-hidden flex items-center gap-[6px] p-[16px]"
+            className="mt-[14px] relative min-h-[255px] overflow-hidden flex items-center gap-[6px] p-[16px]"
             style={{
               background:
                 "linear-gradient(124deg, #e6be9d 2%, #df6807 84%), radial-gradient(ellipse at 55% 50%, rgba(255,242,202,0.59) 0%, rgba(230,190,157,1) 100%)",
             }}
           >
-            <div className="relative w-[164px] h-[204px] shrink-0">
+            <div className="relative w-[164px] h-[204px] shrink-0 max-[360px]:w-[138px] max-[360px]:h-[172px]">
               <Image
                 src="/images/relay-union.png"
                 alt="Relay group"
                 fill
                 className="object-contain"
-                sizes="164px"
+                sizes="(min-width: 640px) 240px, 38vw"
               />
-              <div className="absolute top-[6%] left-[10%] w-[80px] h-[80px] rounded-full overflow-hidden">
+              <div className="absolute top-[6%] left-[10%] w-[49%] aspect-square rounded-full overflow-hidden">
                 <Image
                   src="/images/relay-avatar1.png"
                   alt=""
                   fill
                   className="object-cover"
-                  sizes="80px"
+                  sizes="120px"
                 />
               </div>
-              <div className="absolute top-[40%] left-[55%] w-[80px] h-[80px] rounded-full overflow-hidden">
+              <div className="absolute top-[40%] left-[55%] w-[49%] aspect-square rounded-full overflow-hidden">
                 <Image
                   src="/images/relay-icon.png"
                   alt=""
                   fill
                   className="object-cover"
-                  sizes="80px"
+                  sizes="120px"
                 />
               </div>
-              <div className="absolute bottom-[6%] left-[18%] w-[55px] h-[55px] rounded-full overflow-hidden">
+              <div className="absolute bottom-[6%] left-[18%] w-[34%] aspect-square rounded-full overflow-hidden">
                 <Image
                   src="/images/relay-avatar2.png"
                   alt=""
                   fill
                   className="object-cover"
-                  sizes="55px"
+                  sizes="82px"
                 />
               </div>
             </div>
 
-            <div className="relative flex-1 flex flex-col items-center gap-[14px] text-white">
-              <span className="text-[16px] font-medium tracking-[-0.32px] text-white/70 uppercase">
+            <div className="relative min-w-0 flex-1 flex flex-col items-center gap-[14px] text-white">
+              <span className="text-[16px] font-medium text-white/70 uppercase max-[340px]:text-[14px]">
                 Relay
               </span>
-              <p className="text-[28px] leading-none tracking-[-0.3px] text-center font-medium">
+              <p className="text-[28px] leading-none text-center font-medium max-[380px]:text-[24px] max-[340px]:text-[20px]">
                 Tim, Clara
                 <br />
                 and Jane&rsquo;s
@@ -153,7 +151,7 @@ export default function SocialPage() {
               >
                 <button
                   type="button"
-                  className="px-[21px] py-[7px] bg-[#4b4b4b]/35 text-white text-[20px] font-medium tracking-[-0.4px] backdrop-blur-sm"
+                  className="px-[21px] py-[7px] bg-[#4b4b4b]/35 text-white text-[20px] font-medium backdrop-blur-sm max-[340px]:text-[18px]"
                 >
                   JOIN
                 </button>
